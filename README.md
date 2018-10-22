@@ -1,6 +1,14 @@
 CSCE 411 - assignments
 
 Stage 2:
+
+  Tech:
+     mysql connection in python:
+     
+      conda install -c anaconda mysql-connector-python
+      or
+      pip instal mysql-connector-python
+
   * step a:
       Define:
         n: max number of files (default = 2,000)
