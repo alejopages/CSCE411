@@ -1,12 +1,25 @@
-import mysql.connector
+import MySQLdb
+
+def main():
+  max_files = 2000
+
+  try:
+    db = connect_db()
+  except Exception as e:
+    quit("Quitting")
+
+  db.query("SHOW DATABASES")
+
+  return
 
 
 def connect_db():
   try:
-    db = mysql.connector.connect(
+      db = MySQLdb.connect(
       host="cse.unl.edu",
-      user="cfarmer",
-      password="..."
+      user="apages",
+      passwd="Wtpt4R",
+      db="apages"
     )
   except Exception as e:
     print("Could not connect to DB. {}".format(e))
@@ -14,19 +27,7 @@ def connect_db():
   return db
 
 
-def main():
-  max_files = 2000
 
-  try:
-    db = connect_db
-  except Exception as e:
-    quit("Quitting")
-
-  cr = db.cursor()
-
-  cr.execute("SHOW DATABASES")
-
-  return
 
 if __name__ == '__main__':
   main()
