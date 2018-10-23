@@ -1,6 +1,64 @@
 import mysql.connector
 import os
 from math import ceil
+import struct
+
+
+class Stage2:
+
+    def __init__(self, data_dir='./data', max_num_files=2000):
+        self.data_dir = data_dir
+        self.__max_num_files = max_num_files
+
+
+    def write_db_to_files(self):
+        self.__connect_db()
+
+        if not hasattr(self, "__tables"):
+            self.__fetch_tables()
+
+        for (table,) in self.__tables:
+            fields = self.__get_table_columns()
+
+            
+
+
+    def __get_table_columns(self, table):
+        cur = self.__db.cursor()
+        cur.execute("DESC " + table)
+        fields = cur.fetchall()
+        return fields
+
+
+    def __fetch_tables(self):
+
+        if not hasattr(self, "__db"):
+            self.__connect_db()
+
+        cur1 = self.__db.cursor()
+        cur1.execute('SHOW TABLES')
+        self.__tables = cur1.fetchall()
+        cur1.close()
+
+
+    def __write_table_to_file(self, table):
+        return
+
+
+    def __connect_db(self):
+
+        config = {
+            'user': 'cfarmer',
+            'password': 'eKd65T',
+            'host': 'cse.unl.edu',
+            'database': 'cfarmer'
+        }
+
+        try:
+            self.__db = mysql.connector.connect(**config)
+        except Exception as e:
+            print('Could not connect to database')
+            raise e
 
 
 def main():
@@ -8,6 +66,11 @@ def main():
     # default constants
     max_num_files = 2000
     dat_dir = os.path.normpath('./data')
+
+    oper = Stage2()
+
+    oper.write_db_to_files()
+    quit()
 
     try:
         db = connect_db()
@@ -26,6 +89,7 @@ def main():
 
         count_cur.execute("SELECT COUNT(*) FROM " + table[0])
         num_entries = count_cur.fetchall()[0][0]
+
         num_entries_per_file = ceil(num_entries / max_num_files)
 
         table_cur.execute("SELECT * FROM " + table[0])
@@ -45,11 +109,10 @@ def main():
 
             dat = stringifyVals(vals)
 
-            dat_file.write(dat.encode())
+            dat_file.write(bytes(dat))
 
     db.close()
     return
-
 
 def stringifyVals(vals):
     string = ""
