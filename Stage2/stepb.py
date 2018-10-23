@@ -2,12 +2,14 @@ import mysql.connector
 import os
 from math import ceil
 import struct
+import pickle as pkl
+import json
 
 
 class Stage2:
 
-    def __init__(self, data_dir='./data', max_num_files=2000):
-        self.data_dir = data_dir
+    def __init__(self, dat_dir='./data', max_num_files=2000):
+        self.__dat_dir = dat_dir
         self.__max_num_files = max_num_files
 
 
@@ -18,15 +20,38 @@ class Stage2:
             self.__fetch_tables()
 
         for (table,) in self.__tables:
-            fields = self.__get_table_columns()
+            cur1 = self.__db.cursor()
+            cur1.execute("SELECT COUNT(*) FROM " + table)
+            num_entries = cur1.fetchone()[0]
 
-            
+            entries_per_file = ceil( float(num_entries) / self.__max_num_files )
+
+            cur2 = self.__db.cursor()
+            cur2.execute("SELECT * FROM " + table)
+
+            i_ent=0
+            i_file=0
+            dat_file = open(os.path.join(self.__dat_dir, "{}_{:06d}.dat".format(table, 0)), 'w')
+
+            for vals in cur2.fetchall():
+
+                if i_ent == entries_per_file:
+                    i_ent = 0
+                    dat_file.close()
+                    dat_file = open(os.path.join(self.__dat_dir, "{}_{:06d}.dat".format(table, i_file)), 'w')
+                else:
+                    i_ent += 1
+
+                json.dump(vals, dat_file)
+
+            dat_file.close()
 
 
     def __get_table_columns(self, table):
         cur = self.__db.cursor()
         cur.execute("DESC " + table)
         fields = cur.fetchall()
+        cur.close()
         return fields
 
 
@@ -63,79 +88,9 @@ class Stage2:
 
 def main():
 
-    # default constants
-    max_num_files = 2000
-    dat_dir = os.path.normpath('./data')
+    thing = Stage2()
+    thing.write_db_to_files()
 
-    oper = Stage2()
-
-    oper.write_db_to_files()
-    quit()
-
-    try:
-        db = connect_db()
-    except:
-        quit()
-
-    cur = db.cursor()
-    count_cur = db.cursor()
-    table_cur = db.cursor()
-
-    cur.execute('SHOW TABLES')
-
-    for table in cur.fetchall():
-
-        print("Fetching from {}".format(table[0]))
-
-        count_cur.execute("SELECT COUNT(*) FROM " + table[0])
-        num_entries = count_cur.fetchall()[0][0]
-
-        num_entries_per_file = ceil(num_entries / max_num_files)
-
-        table_cur.execute("SELECT * FROM " + table[0])
-
-        i = 0
-        entries_per_file_counter = 0
-        dat_file = open(os.path.join(dat_dir, "{}_{:06d}.dat".format(table[0], 0)), 'wb')
-
-        for vals in table_cur.fetchall():
-
-            if entries_per_file_counter == num_entries_per_file:
-                dat_file.close()
-                dat_file = open(os.path.join(dat_dir, "{}_{:06d}.dat".format(table[0], i)), 'wb')
-                entries_per_file_counter = 0
-            else:
-                entries_per_file_counter += 1
-
-            dat = stringifyVals(vals)
-
-            dat_file.write(bytes(dat))
-
-    db.close()
-    return
-
-def stringifyVals(vals):
-    string = ""
-    for val in vals:
-        string += " " + str(val) + " "
-    return string
-
-def connect_db():
-
-    config = {
-        'user': 'cfarmer',
-        'password': 'eKd65T',
-        'host': 'cse.unl.edu',
-        'database': 'cfarmer'
-    }
-
-    try:
-        db = mysql.connector.connect(**config)
-    except Exception as e:
-        print('Could not connect to database: {}'.format(e))
-        raise e
-
-    return db
 
 
 if __name__ == '__main__':
