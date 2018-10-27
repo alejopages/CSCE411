@@ -48,6 +48,7 @@ int main(int argc, char **argv)
 				}
 			}
 			if(msgCount > currMax) {
+				currMax = msgCount;
 				currUser = rp->id;
 			}
 		}
