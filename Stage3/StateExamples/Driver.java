@@ -11,63 +11,70 @@ public class Driver {
 
     public static void main(String[] args) {
 
+        //these first lines build the files for fan10
         Queue<StateBean[]> myQueue = enqueueStates();
         Queue<StateBean[]> myQueue2 = enqueueStates();
-//        List<String> nodeLeft = buildNode(myQueue, 6, 1);
-//        List<String> nodeRight = buildNode(myQueue, 5, 8);
-//        String[] root = {"1", "New York", "2"};
-//        buildFiles(myQueue2);
-//        buildNodeLevel(nodeLeft,nodeRight);
-//        buildRootFile(root);
+        List<String> nodeLeft = buildNode(myQueue, 6, 1);
+        List<String> nodeRight = buildNode(myQueue, 5, 8);
+        String[] root = {"1", "New York", "2"};
+        buildFiles(myQueue2);
+        buildNodeLevel(nodeLeft,nodeRight);
+        buildRootFile(root);
+
+
+
+        //remainder builds the files for fan200
         PrintWriter pw = null;
-//        int index = 0;
-//        String prevFile = "";
-//        String currFile;
-//        while (!myQueue.isEmpty()){
-//            StateBean[] beans = myQueue.poll();
-//            for(StateBean b: beans){
-//                currFile = "data/states/fan200/state_leaf_" + index++;
-//                if(b==null){
-//                    pw.write("");
-//                    pw.close();
-//                    break;
-//                }
-//                try {
-//                    pw = new PrintWriter(currFile);
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                }
-//                pw.write(prevFile + ",");
-//                String stateInfo = b.getId() + ":" + b.getName() + ",";
-//                pw.write(stateInfo);
-//                pw.write("state_leaf_"+index);
-//                pw.close();
-//            }
+        Queue<StateBean[]> myQueue3 = enqueueStates();
+        Queue<StateBean[]> myQueue4 = enqueueStates();
+        int index = 0;
+        String prevFile = "";
+        String currFile;
+        while (!myQueue3.isEmpty()) {
+            StateBean[] beans = myQueue3.poll();
+            for (StateBean b : beans) {
+                currFile = "state_leaf_" + index++;
+                if (b == null) {
+                    pw.write("");
+                    pw.close();
+                    break;
+                }
+                try {
+                    pw = new PrintWriter("data/states/fan200/" + currFile);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                pw.write(prevFile + ",");
+                prevFile = currFile;
+                String stateInfo = b.getId() + ":" + b.getName() + ",";
+                pw.write(stateInfo);
+                pw.write("state_leaf_" + index);
+                pw.close();
+            }
+        }
 
             try {
                 pw = new PrintWriter("data/states/fan200/state_node_0");
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
-            myQueue2.poll();
             int pointer = 0;
-            int index = 0;
-            while (!myQueue2.isEmpty()){
-                StateBean[] beans = myQueue2.poll();
+        boolean first = true;
+            while (!myQueue4.isEmpty()){
+                StateBean[] beans = myQueue4.poll();
                 for(StateBean b : beans){
+                    if(first){
+                        first = false;
+                        continue;
+                    }
                     if(b==null){
-                        pw.write("data/states/fan200/state_leaf_"+ pointer);
-                        pw.close();
+                        pw.write("state_leaf_"+ pointer);
                         break;
                     }
-                    if(index % 2 != 0){
+                    else {
+                        pw.write("state_leaf_"+ pointer++ + ",");
                         pw.write(b.getName() + ",");
                     }
-                    else {
-                        pw.write("data/states/fan200/state_leaf_"+ pointer++ + ",");
-
-                    }
-                    index++;
                 }
             }
             pw.close();
@@ -168,7 +175,7 @@ public class Driver {
         int index = 0;
         int pointer = 0;
         try {
-            pw = new PrintWriter("data/states/fan10/state_node_1");
+            pw = new PrintWriter("state_node_1");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
