@@ -9,13 +9,21 @@ import pickle as pkl
 
 class stage2:
 
+
 	def __init__(self, dat_dir='./data', max_num_files=2000):
 		self.__max_num_files = max_num_files
 		self.__dat_dir = dat_dir
 
 
-	def stepb(self):
+	def stepa(self):
+		if not os.path.isdir(self.__dat_dir):
+			os.mkdir(self.__dat_dir)
+
 		self.write_db_to_files()
+
+
+	def stepb(self):
+
 
 
 	def __write_db_to_files(self):
@@ -119,6 +127,7 @@ class stage2:
 			json.dump(vals, dat_file)
 
 		return
+
 
 	def __get_table_columns(self, table):
 

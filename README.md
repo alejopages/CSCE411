@@ -2,9 +2,9 @@ CSCE 411 - assignments
 
 Stage 2:
 
-  Tech:
+  Dependencies:
      mysql connection in python:
-     
+
       conda install -c anaconda mysql-connector-python
       or
       pip instal mysql-connector-python
