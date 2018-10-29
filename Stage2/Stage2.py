@@ -23,7 +23,7 @@ class stage2:
 
 
 	def stepb(self):
-
+		return
 
 
 	def __write_db_to_files(self):
