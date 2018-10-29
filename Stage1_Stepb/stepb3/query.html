@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <script>
+        function executeQuery() {
+			var t0 = performance.now();
+            $.ajax({
+				type: "POST",
+                url: "query.php",
+                data: {
+                    'query': $("#queryinput").val()
+                },
+                success: function (result) {
+					var t1 = performance.now();
+                    $("#result").html(result);
+					$("#resulttime").html("Your query took " + (t1-t0)/1000 + " seconds to proccess");
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<div id="erdiagram">
+    <img src="dbERDiagram.png" height="400">
+</div>
+<div id="querysearch">
+    Using the above E-R diagram for reference write a SQL query below:<br>
+    <textarea id="queryinput"></textarea>
+    <br>
+    <button onclick="executeQuery()">Submit</button>
+</div>
+<p id="resulttime"></p>
+<div id="result"></div>
+</body>
+</html>
