@@ -1,2 +1,4 @@
-./data/
-./Stage2/data/
+./data
+./Stage2/data
+*data*
+!./Stage2/data/metadata*
