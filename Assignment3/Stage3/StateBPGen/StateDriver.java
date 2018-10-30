@@ -11,9 +11,12 @@ public class StateDriver {
 
     public static void main(String[] args) {
 
+        long start = System.nanoTime();
         List<StateBean> beans = getStates();
         buildFan10(beans);
         buildFan200(beans);
+        long end = System.nanoTime();
+        System.out.println("Total run time = " + ((end - start)/1000000000.0) + " seconds.");
     }
 
     public static void buildFan10(List<StateBean> beans){
@@ -74,8 +77,8 @@ public class StateDriver {
 
     public static List<StateBean> getStates(){
         Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = null;
-        ResultSet rs = null;
+        PreparedStatement ps;
+        ResultSet rs;
         String query = "SELECT * FROM State";
         List<StateBean> stateBeanList = new ArrayList<>();
 

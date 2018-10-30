@@ -10,8 +10,11 @@ import java.util.List;
 public class TimeDriver{
 
     public static void main(String[] args) {
+        long start = System.nanoTime();
         timeFan10();
         timeFan200();
+        long end = System.nanoTime();
+        System.out.println("Total run time = " + ((end - start)/1000000000.0) + " seconds.");
     }
 
     public static void timeFan10(){
@@ -51,8 +54,8 @@ public class TimeDriver{
 
     public static List<TimeBean> buildTimeBeans(){
         Connection conn = DatabaseConnection.getConnection();
-        PreparedStatement ps = null;
-        ResultSet rs = null;
+        PreparedStatement ps;
+        ResultSet rs;
         List<TimeBean> beans = new ArrayList<>();
         String query = "SELECT * FROM Time";
         try {
@@ -69,7 +72,7 @@ public class TimeDriver{
 
     public static void writeLeafFiles(String filenamePrefix, int numRecordsPerLeaf, List<TimeBean> beans){
         PrintWriter pw = null;
-        String pointer = "";
+        String pointer;
         int currentFileNum = 0;
         int currNumEntries = 0;
         try {
@@ -126,7 +129,7 @@ public class TimeDriver{
             }
             else if(entriesSeenSinceWrite == numEntriesPerLeafFile){
                 pw.write("time_leaf_" + currPointerVal++ + ",");
-                pw.write(beans.get(i).getId() + ";" + beans.get(i).getValue() + ",");
+                pw.write(beans.get(i).getValue() + ",");
                 currentNumValues++;
                 entriesSeenSinceWrite = 0;
             }
