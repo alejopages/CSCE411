@@ -5,24 +5,73 @@ import json
 import traceback
 import datetime
 import pickle as pkl
-
+from glob import glob
 
 class stage2:
 
 
 	def __init__(self, dat_dir='./data', max_num_files=2000):
 		self.__max_num_files = max_num_files
-		self.__dat_dir = dat_dir
+		self.__dat_dir = os.path.normpath(dat_dir)
 
 
 	def stepa(self):
 		if not os.path.isdir(self.__dat_dir):
 			os.mkdir(self.__dat_dir)
 
-		self.write_db_to_files()
+		self.__write_db_to_files()
 
 
-	def stepb(self):
+	def stepb(self, table, column):
+		'''
+		Args:
+			table is what table you want to sort
+				options are:
+					[City, Date, Location, Message, Person, Time, Timestamp]
+			column: column to sort by
+				options depend on table
+		'''
+
+		self.__get_metadata()
+
+		if table not in self.__metadata:
+			print("Invalid table name")
+			return
+
+		files = glob(os.path.join(self.__dat_dir, table + "_*.dat"))
+
+		data = []
+		for file in files:
+			with open(file, 'r') as f:
+				data.append(json.load(f))
+
+		col_ind = -1
+		for i,field in enumerate(self.__metadata[table]['fields']):
+			if field[0] == column:
+				col_ind = i
+				break
+
+		if col_ind == -1:
+			print("Invalid column name")
+			return
+
+		files = data.sort(key=lambda x: x[col_ind])
+
+		entries_per_file = ceil( float(num_entries) / self.__max_num_files )
+		i_ent = 0
+		i_file = 0
+		temp = []
+		for entry in data:
+			if i_ent < entries_per_file:
+				i_ent += 1
+				temp.append(entry)
+			else:
+				with open("{}_{:06d}.dat".format(table, i_file), 'w') as dat_file:
+					self.__dump_json(temp, dat_file)
+				temp = []
+				i_ent = 0
+				i_file += 1
+
 		return
 
 
@@ -45,13 +94,13 @@ class stage2:
 
 			fields = self.__get_table_columns(table)
 
-			metadata[table] = {
+			self.__metadata[table] = {
 				'num_entries':num_entries,
 				'entries_per_file':entries_per_file,
 				'fields':fields
 			}
 
-			print("TABLE: {}".format(tabls))
+			print("TABLE: {}".format(table))
 			print("Number of entries: {}".format(num_entries))
 			print("Entries per file: {}".format(entries_per_file))
 
@@ -62,37 +111,40 @@ class stage2:
 			i_file=0
 			dat_file = open(os.path.join(self.__dat_dir, "{}_{:06d}.dat".format(table, 0)), 'w')
 
+			temp = []
+
 			for vals in cur2.fetchall():
 
 				if i_ent == entries_per_file:
+
+					with open(os.path.join(self.__dat_dir, "{}_{:06d}.dat".format(table, i_file)), 'w')\
+					as dat_file:
+						try:
+							self.__dump_json(temp, dat_file)
+						except TypeError:
+							traceback.print_exc()
+							print("For: {}".format(vals))
+							pass
+						except:
+							traceback.print_exc()
+							quit()
+					temp = []
 					i_ent = 0
 					i_file += 1
-					dat_file.close()
-					dat_file = open(os.path.join(self.__dat_dir, "{}_{:06d}.dat".format(table, i_file)), 'w')
+
 				else:
+					temp.append(vals)
 					i_ent += 1
-
-				try:
-					self.__dump_json(vals, dat_file)
-				except TypeError:
-					traceback.print_exc()
-					print("For: {}".format(vals))
-					pass
-				except:
-					traceback.print_exc()
-					quit()
-
-			dat_file.close()
 
 		self.__db.close()
 		pkl.dump(self.__metadata, open(os.path.join(self.__dat_dir, 'metadata.pkl'), 'wb'))
 
 
-	def get_metadata(self):
+	def __get_metadata(self):
 		if hasattr(self, '__metadata'):
 			return
 		elif os.path.isfile(os.path.join(self.__dat_dir, "metadata.pkl")):
-			self.__metadata = pkl.load(os.path.join(self.__dat_dir, "metadata.pkl"))
+			self.__metadata = pkl.load(open(os.path.join(self.__dat_dir, "metadata.pkl"), 'rb'))
 		else:
 			self.__connect_db()
 			self.__fetch_tables()
@@ -118,14 +170,19 @@ class stage2:
 
 
 	def __dump_json(self, vals, dat_file):
-		if isinstance(vals[1], datetime.date) \
-		  or isinstance(vals[1], datetime.timedelta) \
-		  or isinstance(vals[1], datetime.time):
-			json.dump((vals[0], str(vals[1])), dat_file)
 
-		else:
-			json.dump(vals, dat_file)
+		try:
+			if isinstance(vals[0][1], datetime.date) \
+			  or isinstance(vals[0][1], datetime.timedelta) \
+			  or isinstance(vals[0][1], datetime.time):
+				json.dump([(val[0], str(val[1])) for val in vals], dat_file)
 
+			else:
+				json.dump(vals, dat_file)
+
+		except Exception as e:
+			print("Error dumping json")
+			raise e
 		return
 
 
