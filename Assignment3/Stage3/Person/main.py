@@ -1,6 +1,7 @@
 from sys import argv, exit
 import tests
 import dataLoader
+from math import ceil
 
 NODE_HEADER = "person_node_"
 LEAF_HEADER = "person_leaf_"
@@ -8,44 +9,90 @@ LEAF_HEADER = "person_leaf_"
 def main():
     FAN = 10
     # FAN = 200
-    # tests.runTests()
-
+    # NUM_ITEMS = 1999
     # messages = dataLoader.importMessages()
     persons = dataLoader.importPersons()
-    leaves = buildLeaves(persons, FAN)
-#
-    lvl1Nodes = buildLvl1Nodes(leaves, FAN)
-#
-    for node in lvl1Nodes:
+    NUM_ITEMS = len(persons)
+    entryResults = getEntryResults(NUM_ITEMS, FAN)
+    for item in entryResults:
+        print(item)
+
+    leaves = buildLeaves(persons, FAN, entryResults[0]["entriesPerFile"])
+    # print(len(leaves))
+
+    lvl1Nodes = buildLvl1Nodes(leaves, FAN, \
+            entryResults[1]["entriesPerFile"], \
+            entryResults[1]["startingFileNumber"], "person_leaf_")
+    # print(len(lvl1Nodes))
+    # for node in lvl1Nodes:
+        # print(node)
+
+    lvl2Nodes = buildLvl1Nodes(lvl1Nodes, FAN, \
+            entryResults[2]["entriesPerFile"], \
+            entryResults[2]["startingFileNumber"], "person_node_")
+    print(len(lvl2Nodes))
+    for node in lvl2Nodes:
         print(node)
+
 
     return
 
-def buildLvl1Nodes(leaves, FAN):
-    LEAVES_PER_NODE = determineLeavesPerNode(len(leaves), FAN)
+def getEntryResults(NUM_ITEMS, FAN):
+    entryResults = determineEntriesPerFileAmounts(NUM_ITEMS, FAN)
+    determineStartingFileNumbers(entryResults)
+    return entryResults
+
+def determineStartingFileNumbers(entryResults):
+    count = 0
+    for i in range(len(entryResults)-1, 0, -1):
+        entry = entryResults[i]
+        entry["startingFileNumber"] = count
+        count += entry["numFiles"]
+
+    return
+
+def determineEntriesPerFileAmounts(NUM_ITEMS, FAN):
+    entryResults = list()
+
+    numEntriesPerFile = determineEntriesPerLeafFile(NUM_ITEMS, FAN)
+    numFiles = ceil(NUM_ITEMS/numEntriesPerFile)
+    entryResults.append({"entriesPerFile": numEntriesPerFile, "numFiles": numFiles, "startingFileNumber": 0})
+
+    while numFiles > 1:
+        numEntriesPerFile = determineEntriesPerNode(numFiles, FAN)
+        numFiles = ceil(numFiles/numEntriesPerFile)
+        entryResults.append({"entriesPerFile": numEntriesPerFile, "numFiles": numFiles, "startingFileNumber": -1})
+
+    return entryResults
+
+def buildLvl1Nodes(leaves, FAN, LEAVES_PER_NODE, FIRST_NODE_NUMBER, HEADER):
+    # LEAVES_PER_NODE = determineEntriesPerNode(len(leaves), FAN)
 
     lvl1Nodes = list()
     count = 0
     while len(leaves) > 0:
-        node = buildNode(leaves, LEAVES_PER_NODE, count*10)
+        node = buildNode(leaves, LEAVES_PER_NODE, \
+                         FIRST_NODE_NUMBER + (count*10), HEADER)
         lvl1Nodes.append(node)
         count += 1
 
     return lvl1Nodes
 
-def buildNode(leaves, LEAVES_PER_NODE, FIRST_NODE_NUMBER):
+def buildNode(leaves, LEAVES_PER_NODE, FIRST_NODE_NUMBER, HEADER):
     leaves.pop(0)
-    node = LEAF_HEADER + str(FIRST_NODE_NUMBER) + ","
+    node = HEADER + str(FIRST_NODE_NUMBER) + ","
     for i in range(1, LEAVES_PER_NODE):
         if len(leaves) == 0:
             break
-        addition = leaves.pop(0).split(",")[1].split(";")[0] + "," + LEAF_HEADER + str(FIRST_NODE_NUMBER + i) + ","
+        addition = leaves.pop(0).split(",")[1].split(";")[0] \
+                 + "," + HEADER + str(FIRST_NODE_NUMBER + i) + ","
         node += addition
 
     return node[0 : len(node) - 1]
 
-def buildLeaves(persons, FAN):
-    ENTRIES_PER_LEAF = determineEntriesPerLeaf(len(persons), FAN)
+def buildLeaves(persons, FAN, ENTRIES_PER_LEAF):
+    # ENTRIES_PER_LEAF = determineEntriesPerLeafFile(len(persons), FAN)
+    # ENTRIES_PER_LEAF = determineEntriesPerLeafFile(len(persons), FAN)
 
     leaves = list()
 
@@ -109,7 +156,7 @@ def getLeafEntries(persons, entriesPerLeaf):
 
     return s[0 : len(s) - 1]
 
-def determineEntriesPerLeaf(numItems, fan):
+def determineEntriesPerLeafFile(numItems, fan):
     for tentativeNumEntriesPerLeaf in range(fan - 1, 0, -1):
         if entriesPerLeafAmountIsValid(numItems, tentativeNumEntriesPerLeaf):
             return tentativeNumEntriesPerLeaf
@@ -117,7 +164,10 @@ def determineEntriesPerLeaf(numItems, fan):
     exit("ERROR: No viable number of entries")
     return
 
-def determineLeavesPerNode(numItems, fan):
+def determineEntriesPerNode(numItems, fan):
+    if numItems < fan:
+        return numItems
+
     for tentativeNumEntriesPerLeaf in range(fan, 0, -1):
         if entriesPerLeafAmountIsValid(numItems, tentativeNumEntriesPerLeaf):
             return tentativeNumEntriesPerLeaf
@@ -127,7 +177,7 @@ def determineLeavesPerNode(numItems, fan):
 
 def entriesPerLeafAmountIsValid(numItems, numEntriesPerFile):
     remainder = (numItems/numEntriesPerFile) % 1
-    return (remainder > 0.5) or (remainder == 0)
+    return (remainder >= 0.5) or (remainder == 0)
 
 def personToString(tuple):
     s = ""
