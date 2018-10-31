@@ -24,6 +24,29 @@ def importMessages():
     connection.close()
     return messages
 
+# def importPersonsAsQueue():
+    # connection = getDbConnection()
+    # cursor = connection.cursor()
+#
+    # sql = "select p.id, p.idStr, p.name, l.stateId, l.cityId " \
+    # + "from Person p, Location l " \
+    # + "where p.locationId = l.id " \
+    # + "order by l.stateId"
+#
+    # cursor.execute(sql)
+#
+    # persons = Queue()
+    # for (id, idStr, name, stateId, cityId) in cursor:
+        # # person = (id, idStr, name, stateId, cityId)
+        # person = (stateId, id, idStr, name, cityId)
+        # persons.put(person)
+#
+    # cursor.close()
+    # connection.close()
+#
+    # return persons
+
+
 def importPersons():
     connection = getDbConnection()
     cursor = connection.cursor()
@@ -37,7 +60,8 @@ def importPersons():
 
     persons = list()
     for (id, idStr, name, stateId, cityId) in cursor:
-        person = (id, idStr, name, stateId, cityId)
+        # person = (id, idStr, name, stateId, cityId)
+        person = (stateId, id, idStr, name, cityId)
         persons.append(person)
 
     cursor.close()
