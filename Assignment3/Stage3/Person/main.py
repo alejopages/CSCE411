@@ -18,21 +18,23 @@ def main():
         print(item)
 
     leaves = buildLeaves(persons, FAN, entryResults[0]["entriesPerFile"])
-    # print(len(leaves))
+    print(len(leaves))
+    for leaf in leaves:
+        print(leaf)
 
     lvl1Nodes = buildLvl1Nodes(leaves, FAN, \
             entryResults[1]["entriesPerFile"], \
             entryResults[1]["startingFileNumber"], "person_leaf_")
-    # print(len(lvl1Nodes))
-    # for node in lvl1Nodes:
-        # print(node)
+    print(len(lvl1Nodes))
+    for node in lvl1Nodes:
+        print(node)
 
     lvl2Nodes = buildLvl1Nodes(lvl1Nodes, FAN, \
             entryResults[2]["entriesPerFile"], \
             entryResults[2]["startingFileNumber"], "person_node_")
-    print(len(lvl2Nodes))
-    for node in lvl2Nodes:
-        print(node)
+    # print(len(lvl2Nodes))
+    # for node in lvl2Nodes:
+        # print(node)
 
 
     return
