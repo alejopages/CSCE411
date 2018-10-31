@@ -13,23 +13,36 @@ def main():
     # messages = dataLoader.importMessages()
     persons = dataLoader.importPersons()
     leaves = buildLeaves(persons, FAN)
-
-    # for leaf in leaves:
-        # print(leaf)
-    LEAVES_PER_NODE = determineLeavesPerNode(len(leaves), FAN)
-    print(LEAVES_PER_NODE)
-
-    lvl1Nodes = list()
-    node = LEAF_HEADER + "0,"
-    leaves.pop(0)
-    for i in range(1, LEAVES_PER_NODE - 1):
-        addition = leaves.pop(0).split(",")[1].split(";")[0] + "," + LEAF_HEADER + str(i+1) + ","
-        node += addition
-
-    print(node[0 : len(node) - 1])
-
+#
+    lvl1Nodes = buildLvl1Nodes(leaves, FAN)
+#
+    for node in lvl1Nodes:
+        print(node)
 
     return
+
+def buildLvl1Nodes(leaves, FAN):
+    LEAVES_PER_NODE = determineLeavesPerNode(len(leaves), FAN)
+
+    lvl1Nodes = list()
+    count = 0
+    while len(leaves) > 0:
+        node = buildNode(leaves, LEAVES_PER_NODE, count*10)
+        lvl1Nodes.append(node)
+        count += 1
+
+    return lvl1Nodes
+
+def buildNode(leaves, LEAVES_PER_NODE, FIRST_NODE_NUMBER):
+    leaves.pop(0)
+    node = LEAF_HEADER + str(FIRST_NODE_NUMBER) + ","
+    for i in range(1, LEAVES_PER_NODE):
+        if len(leaves) == 0:
+            break
+        addition = leaves.pop(0).split(",")[1].split(";")[0] + "," + LEAF_HEADER + str(FIRST_NODE_NUMBER + i) + ","
+        node += addition
+
+    return node[0 : len(node) - 1]
 
 def buildLeaves(persons, FAN):
     ENTRIES_PER_LEAF = determineEntriesPerLeaf(len(persons), FAN)
