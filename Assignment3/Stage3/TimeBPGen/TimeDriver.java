@@ -33,7 +33,7 @@ public class TimeDriver{
             e.printStackTrace();
         }
         pw.write("time_node_1,01:57:00,time_node_2");
-
+        pw.close();
 
     }
 
