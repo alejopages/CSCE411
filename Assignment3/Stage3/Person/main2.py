@@ -23,43 +23,58 @@ def main():
     persons = dataLoader.importPersons()
     NUM_ITEMS = len(persons)
     entryResults = getEntryResults(NUM_ITEMS, FAN)
+    print("PROCESSING ENTRY RESULTS" \
+        + "\n======================================")
     for item in entryResults:
         print(item)
 
     # BUILD LEAVES
     # ======================================
+    print("BUILDING LEAVES" \
+        + "\n======================================")
     lvl0Results = entryResults[0]
     leaves = buildLeaves(persons, FAN, \
              lvl0Results["entriesPerFile"], PERSON_LEAF_LEADER)
-    # writeLeavesToFiles(leaves, FAN_10_FILEPATH + PERSON_LEAF_LEADER)
+    writeLeavesToFiles(leaves, FAN_10_FILEPATH + PERSON_LEAF_LEADER)
 
 
     # BUILD LVL 1 NODES
     # ======================================
+    print("BUILDING NODE LVL: 1" \
+        + "\n======================================")
     lvl1Results = entryResults[1]
     lvl1Nodes = buildLvl1Nodes(leaves, lvl1Results, \
                                PERSON_LEAF_LEADER, PERSON_NODE_LEADER)
-    # writeNodesToFiles(lvl1Nodes, FAN_10_FILEPATH + PERSON_NODE_LEADER, lvl1Results["startingFileNumber"])
+    writeNodesToFiles(lvl1Nodes, FAN_10_FILEPATH + PERSON_NODE_LEADER, lvl1Results["startingFileNumber"])
 
     # BUILD LVL 2 NODES
     # ======================================
-    lvl2Results = entryResults[2]
-    lvl2Nodes = buildHigherNodes(lvl1Nodes, lvl1Results["startingFileNumber"], entryResults[2], PERSON_NODE_LEADER)
+    # lvl2Results = entryResults[2]
+    # lvl2Nodes = buildHigherNodes(lvl1Nodes, lvl1Results["startingFileNumber"], entryResults[2], PERSON_NODE_LEADER)
     # writeNodesToFiles(lvl2Nodes, FAN_10_FILEPATH + PERSON_NODE_LEADER, lvl2Results["startingFileNumber"])
-    # for node in lvl2Nodes:
-        # print(node)
 
     # BUILD LVL 3 NODES
     # ======================================
-    lvl3Results = entryResults[3]
-    lvl3Nodes = buildHigherNodes(lvl2Nodes, lvl2Results["startingFileNumber"], entryResults[3], PERSON_NODE_LEADER)
-    writeNodesToFiles(lvl2Nodes, FAN_10_FILEPATH + PERSON_NODE_LEADER, lvl3Results["startingFileNumber"])
+    # lvl3Results = entryResults[3]
+    # lvl3Nodes = buildHigherNodes(lvl2Nodes, lvl2Results["startingFileNumber"], entryResults[3], PERSON_NODE_LEADER)
+    # writeNodesToFiles(lvl3Nodes, FAN_10_FILEPATH + PERSON_NODE_LEADER, lvl3Results["startingFileNumber"])
 
-    # TODO: Seems to basically be working - but I know there's definitely
-    # some issues where indices are off by a certain amount. Really need
-    # to go through it all with a fine-tooth comb and see what's going on.
-    # Might help if I just write it all to files so I have something more
-    # tangible to observe
+    # BUILD ALL NODES
+    # ======================================
+    allNodes = list()
+    allNodes = allNodes + lvl1Nodes
+    prevNodes = lvl1Nodes
+    for i in range(2, len(entryResults)):
+        print("BUILDING NODE LVL: " + str(i) \
+            + "\n======================================")
+        prevLvlResults = entryResults[i-1]
+        lvlResults = entryResults[i]
+        lvlNodes = buildHigherNodes(prevNodes, \
+                   prevLvlResults["startingFileNumber"], \
+                   lvlResults, PERSON_NODE_LEADER)
+        writeNodesToFiles(lvlNodes, FAN_10_FILEPATH + PERSON_NODE_LEADER, lvlResults["startingFileNumber"])
+        allNodes = lvlNodes + allNodes
+        prevNodes = lvlNodes
 
     return
 
@@ -72,6 +87,7 @@ def writeNodesToFiles(NODES, LEADER, STARTING_NUMBER):
     start = 0
     end = len(NODES)
     for i in range(start, end):
+        # print(i)
         nodeNameNumber = str(STARTING_NUMBER + i)
         writeNodeToFile(NODES[i], LEADER + nodeNameNumber)
     return
