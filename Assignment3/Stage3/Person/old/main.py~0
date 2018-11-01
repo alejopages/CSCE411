@@ -4,18 +4,13 @@ import dataLoader
 from math import ceil
 import json
 
-# NODE_HEADER = "person_node_"
-LEAF_HEADER = "person_leaf_"
+FAN = 10
+NODE_LEADER = "person_node_"
+LEAF_LEADER = "person_leaf_"
 FAN_10_FILEPATH = "persons/fan10/"
 FAN_200_FILEPATH = "persons/fan200/"
 
 def main():
-    FAN = 10
-    # FAN = 200
-    # NUM_ITEMS = 1999
-    PERSON_LEAF_LEADER = "person_leaf_"
-    PERSON_NODE_LEADER = "person_node_"
-
     # messages = dataLoader.importMessages()
 
     # IMPORT PERSONS
@@ -34,8 +29,8 @@ def main():
         + "\n======================================")
     lvl0Results = entryResults[0]
     leaves = buildLeaves(persons, FAN, \
-             lvl0Results["entriesPerFile"], PERSON_LEAF_LEADER)
-    writeLeavesToFiles(leaves, FAN_10_FILEPATH + PERSON_LEAF_LEADER)
+             lvl0Results["entriesPerFile"], LEAF_LEADER)
+    writeLeavesToFiles(leaves, FAN_10_FILEPATH + LEAF_LEADER)
 
 
     # BUILD LVL 1 NODES
@@ -44,7 +39,7 @@ def main():
         + "\n======================================")
     lvl1Results = entryResults[1]
     lvl1Nodes = buildLvl1Nodes(leaves, lvl1Results, \
-                               PERSON_LEAF_LEADER, PERSON_NODE_LEADER)
+                               LEAF_LEADER, PERSON_NODE_LEADER)
     writeNodesToFiles(lvl1Nodes, FAN_10_FILEPATH + PERSON_NODE_LEADER, lvl1Results["startingFileNumber"])
 
     # BUILD LVL 2 NODES
