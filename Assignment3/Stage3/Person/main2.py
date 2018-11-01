@@ -4,8 +4,10 @@ import dataLoader
 from math import ceil
 import json
 
-NODE_HEADER = "person_node_"
+# NODE_HEADER = "person_node_"
 LEAF_HEADER = "person_leaf_"
+FAN_10_FILEPATH = "persons/fan10/"
+FAN_200_FILEPATH = "persons/fan200/"
 
 def main():
     FAN = 10
@@ -16,43 +18,42 @@ def main():
 
     # messages = dataLoader.importMessages()
 
+    # IMPORT PERSONS
+    # ======================================
     persons = dataLoader.importPersons()
     NUM_ITEMS = len(persons)
     entryResults = getEntryResults(NUM_ITEMS, FAN)
     for item in entryResults:
         print(item)
 
+    # BUILD LEAVES
+    # ======================================
     lvl0Results = entryResults[0]
     leaves = buildLeaves(persons, FAN, \
              lvl0Results["entriesPerFile"], PERSON_LEAF_LEADER)
-    # print(len(leaves))
+    # writeLeavesToFiles(leaves, FAN_10_FILEPATH + PERSON_LEAF_LEADER)
 
+
+    # BUILD LVL 1 NODES
+    # ======================================
     lvl1Results = entryResults[1]
     lvl1Nodes = buildLvl1Nodes(leaves, lvl1Results, \
                                PERSON_LEAF_LEADER, PERSON_NODE_LEADER)
-    # print(len(lvl1Nodes))
-    # print(json.dumps(lvl1Nodes, indent=4))
-    # for node in lvl1Nodes:
-        # print(node)
+    # writeNodesToFiles(lvl1Nodes, FAN_10_FILEPATH + PERSON_NODE_LEADER, lvl1Results["startingFileNumber"])
 
-    # TODO: Consider removing the person_node_4 label thing from this -
-    # I think the label might make it harder to iterate for the next
-    # node levels - don't think it'll be necessary to have that either
-    # since it's still stored in the entryResults
-    # CAn just do entryREsults["starintgthingy"] + i when iterating
-    # over them
-
-    # lvl2Nodes = buildLvl2Nodes(lvl1Nodes, lvl2Results, PERSON_NODE_LEADER)
-    # for node in lvl2Nodes:
-        # print(node)
-
+    # BUILD LVL 2 NODES
+    # ======================================
     lvl2Results = entryResults[2]
     lvl2Nodes = buildHigherNodes(lvl1Nodes, lvl1Results["startingFileNumber"], entryResults[2], PERSON_NODE_LEADER)
+    # writeNodesToFiles(lvl2Nodes, FAN_10_FILEPATH + PERSON_NODE_LEADER, lvl2Results["startingFileNumber"])
     # for node in lvl2Nodes:
         # print(node)
 
+    # BUILD LVL 3 NODES
+    # ======================================
     lvl3Results = entryResults[3]
     lvl3Nodes = buildHigherNodes(lvl2Nodes, lvl2Results["startingFileNumber"], entryResults[3], PERSON_NODE_LEADER)
+    writeNodesToFiles(lvl2Nodes, FAN_10_FILEPATH + PERSON_NODE_LEADER, lvl3Results["startingFileNumber"])
 
     # TODO: Seems to basically be working - but I know there's definitely
     # some issues where indices are off by a certain amount. Really need
@@ -60,17 +61,39 @@ def main():
     # Might help if I just write it all to files so I have something more
     # tangible to observe
 
+    return
 
-    # rootNode = buildRootNode(lvl2Nodes, lvl3Results, lvl2Results["startingFileNumber"], PERSON_NODE_LEADER)
-# def buildHigherNode(lowerNodes, lvlEntryResults, STARTING_NODE_NUMBER, PREVIOUS_STARTING_NODE_NUMBER, LEADER):
+def writeLeavesToFiles(LEAVES, LEADER):
+    for i in range(0, len(LEAVES)):
+        writeLeafToFile(LEAVES[i], LEADER + str(i))
+    return
 
-    # lvl3Nodes = buildHigherNodes(lvl2Nodes, lvl2Results["startingFileNumber"], entryResults[3], PERSON_NODE_LEADER)
+def writeNodesToFiles(NODES, LEADER, STARTING_NUMBER):
+    start = 0
+    end = len(NODES)
+    for i in range(start, end):
+        nodeNameNumber = str(STARTING_NUMBER + i)
+        writeNodeToFile(NODES[i], LEADER + nodeNameNumber)
+    return
 
-    # print("OLD NODES")
-    # print(lvl1Nodes[0])
-    # print(lvl1Nodes[10])
-    # print(leaves[100])
+def writeNodeToFile(node, filepath):
+    f = open(filepath, "w")
+    f.write(node["values"])
+    f.close()
+    return
 
+def writeLeafToFile(item, filepath):
+    f = open(filepath, "w")
+    # f.write(item.strip())
+    f.write(item["leftPointer"] + "," \
+          + item["values"] + "," \
+          + item["rightPointer"])
+
+    f.close()
+    # print("Writing: " + item["leftPointer"] + "," \
+                      # + item["values"] + "," \
+                      # + item["rightPointer"] \
+                      # + "\nTo FP: " + filepath)
     return
 
 # def buildRootNode(lowerNodes, lvlEntryResults, PREVIOUS_STARTING_NODE_NUMBER, LEADER):
@@ -105,18 +128,18 @@ def buildHigherNodes(previousLevelNodes, previousLvlStartingFileNumber, \
     entriesPerFile = lvlEntryResults["entriesPerFile"]
     end = lvlEntryResults["numFiles"]
     for i in range(end):
-        print(i)
+        # print(i)
         higherNode = buildHigherNode(previousLevelNodes, lvlEntryResults, \
                 previousLvlStartingFileNumber + (i*entriesPerFile), \
                 previousLvlStartingFileNumber, NODE_LEADER)
-        print(higherNode)
+        # print(higherNode)
         nodes.append(higherNode)
 
     return nodes
 
 def buildHigherNode(lowerNodes, lvlEntryResults, STARTING_NODE_NUMBER, PREVIOUS_STARTING_NODE_NUMBER, LEADER):
-    print("StartingNodeNumber: " + str(STARTING_NODE_NUMBER))
-    print("PrevStartNodeNum: " + str(PREVIOUS_STARTING_NODE_NUMBER))
+    # print("StartingNodeNumber: " + str(STARTING_NODE_NUMBER))
+    # print("PrevStartNodeNum: " + str(PREVIOUS_STARTING_NODE_NUMBER))
     node = dict()
     ENTRIES_PER_FILE = lvlEntryResults["entriesPerFile"]
     node["values"] = LEADER + str(STARTING_NODE_NUMBER) + ","
@@ -126,14 +149,14 @@ def buildHigherNode(lowerNodes, lvlEntryResults, STARTING_NODE_NUMBER, PREVIOUS_
 
     start = (STARTING_NODE_NUMBER)+1
     end = (STARTING_NODE_NUMBER + ENTRIES_PER_FILE)
-    print(start)
-    print(end)
+    # print(start)
+    # print(end)
     for i in range(start, end):
         numLowerNodes = len(lowerNodes)
         # print("NumLowerNodes: " + str(numLowerNodes))
         # if i >= numLowerNodes:
         if i-PREVIOUS_STARTING_NODE_NUMBER >= numLowerNodes:
-            print("exiting")
+            # print("exiting")
             break
         lowerNode = lowerNodes[i-PREVIOUS_STARTING_NODE_NUMBER]
         # smallestleaf["values"].split(",")[1].split(";")[0]
@@ -226,7 +249,7 @@ def buildLeaves(persons, FAN, ENTRIES_PER_LEAF, LEADER):
 def getLastLeaf(persons, ENTRIES_PER_LEAF, leafNumber, LEADER):
     leafEntries = getLeafEntries(persons, ENTRIES_PER_LEAF)
     # lastLeaf = wrapLastLeafEntryInLeafPointers(lastLeaf, leafNumber)
-    leaf = {"values": leafEntries, "lowestValue": leafEntries.split(";")[0], "leftPointer": "", "rightPointer": LEADER + str(leafNumber)}
+    leaf = {"values": leafEntries, "lowestValue": leafEntries.split(";")[0], "leftPointer": LEADER + str(leafNumber), "rightPointer": ""}
     return leaf
 
 def getInnerLeaves(leaves, persons, ENTRIES_PER_LEAF, FAN, LEADER):
