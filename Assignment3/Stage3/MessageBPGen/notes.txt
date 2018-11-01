@@ -1,0 +1,6 @@
+{'entriesPerFile': 9, 'numFiles': 10929, 'startingFileNumber': 0}
+{'entriesPerFile': 10, 'numFiles': 1093, 'startingFileNumber': 154}
+{'entriesPerFile': 8, 'numFiles': 137, 'startingFileNumber': 17}
+{'entriesPerFile': 10, 'numFiles': 14, 'startingFileNumber': 3}
+{'entriesPerFile': 9, 'numFiles': 2, 'startingFileNumber': 1}
+{'entriesPerFile': 2, 'numFiles': 1, 'startingFileNumber': 0}

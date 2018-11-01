@@ -247,6 +247,8 @@ def buildNode(leaves, LEAVES_PER_NODE, STARTING_LEAF_NUMBER, LEADER):
     node["leftmostTreeValue"] = leaves[STARTING_LEAF_NUMBER]["lowestValue"]
     for i in range(STARTING_LEAF_NUMBER+1, \
                    STARTING_LEAF_NUMBER + LEAVES_PER_NODE):
+        if i >= len(leaves):
+            break
         leaf = leaves[i]
         # smallestleaf["values"].split(",")[1].split(";")[0]
         addition = leaf["lowestValue"] \
