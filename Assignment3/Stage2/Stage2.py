@@ -1,6 +1,6 @@
 import mysql.connector
 import os
-from math import ceil
+from math import ceil, log
 import json
 import traceback
 import datetime
@@ -10,16 +10,142 @@ from glob import glob
 class stage2:
 
 
-	def __init__(self, dat_dir='./data', max_num_files=2000):
+	def __init__(self, dat_dir=r'C:\data', max_num_files=2000):
 		self.__max_num_files = max_num_files
 		self.__dat_dir = os.path.normpath(dat_dir)
 
+
+	def stepc(self):
+		'''
+		queries:
+			0 = Find all users of Nebraska
+			1 = All users who sent a message between 8am - 9am
+			2 = All users who sent a message between 8am - 9am from Nebraska
+			3 = All users who sent the maximum number of messages between 8am - 9am
+				from Nebraska
+		returns:
+			List of all users matched in the query
+		'''
+		opt = self.__get_option()
+		'''
+		if opt == 0:
+			self.__nebr()
+		elif opt == 1:
+			self.__
+		elif opt == 2:
+			self.__
+		elif opt == 3:
+			self.__
+		'''
+
+	def __query_nebraska(self):
+
+		self.__sort_table_by_column('State', 'name')
+
+
+
+	def file_binary_search(self, table, value, col_id):
+
+		self.__get_metadata()
+
+		for i, field in enumerate(self.__metadata[table]['fields']):
+			if field[0] == col_id:
+				col_num = i
+
+		num_files = ceil(
+			self.__metadata[table]['num_entries'] / self.__metadata[table]['entries_per_file']
+		)
+
+		i_low = 0
+		i_high = num_files
+
+
+		iter_counter = 0
+		max_iter = log(num_files, 2)
+
+		while i_low <= i_high:
+
+			if iter_counter < max_iter:
+				iter_counter += 1
+			else:
+				print("Maximum number of iterations reached.")
+				return
+
+			i = (i_high + i_low) // 2
+
+			print("low: {}; high: {}; i: {}".format(i_low, i_high, i))
+
+			with open(os.path.join(self.__dat_dir, "{}_{:06d}.dat".format(table, i))) as dat_file:
+				print("Checking file: {}_{:06d}.dat".format(table, i))
+				res =  self.entry_binary_search(json.load(dat_file), value, col_num)
+
+
+			if res == -1:
+				i_high = i - 1
+			elif res == 1:
+				i_low = i + 1
+			else:
+				return res
+
+
+
+
+	def entry_binary_search(self, data, value, col_num):
+
+		print(data)
+
+		if value < data[0][col_num]:
+			print("{} is less than {}".format(value, data[0][col_num]))
+			return -1
+		elif value > data[-1][col_num]:
+			print("{} is greater than {}".format(value, data[0][col_num]))
+			return 1
+		elif len(data) == 1:
+			return data[0]
+
+		i_low = 0
+		i_high = len(data) - 1
+
+		while i_low < i_high:
+			i = (i_high - i_low) / 2
+
+			if data[i][col_num] == value:
+				return data[i]
+			elif value > data[i][col_num]:
+				i_low = i + 1
+			else:
+				i_high = i - 1
+
+		return False
+
+
+	def __get_option(self):
+
+		print("Stage2, step c: Queries")
+		print("=======================================================================================")
+		print("\t0 = Find all users of Nebraska")
+		print("\t1 = All users who sent a message between 8am - 9am")
+		print("\t2 = All users who sent a message between 8am - 9am from Nebraska")
+		print("\t3 = All users who sent the maximum number of messages between 8am - 9am from Nebraska")
+
+		print("=======================================================================================")
+
+		option = -1
+		while option in [0,1,2,3]:
+			option = input("Enter Option [0,1,2,3]: ")
+
+		return option
 
 	def stepa(self):
 		if not os.path.isdir(self.__dat_dir):
 			os.mkdir(self.__dat_dir)
 
 		self.__write_db_to_files()
+
+
+	def __sort_table_by_column(self, table, column):
+		self.stepb(table, column)
+		return
 
 
 	def stepb(self, table, column):
@@ -43,10 +169,10 @@ class stage2:
 		data = []
 		for file in files:
 			with open(file, 'r') as f:
-				data.append(json.load(f))
+				data += json.load(f)
 
 		col_ind = -1
-		for i,field in enumerate(self.__metadata[table]['fields']):
+		for i, field in enumerate(self.__metadata[table]['fields']):
 			if field[0] == column:
 				col_ind = i
 				break
@@ -55,18 +181,20 @@ class stage2:
 			print("Invalid column name")
 			return
 
-		files = data.sort(key=lambda x: x[col_ind])
+		data.sort(key=lambda x: x[col_ind])
 
-		entries_per_file = ceil( float(num_entries) / self.__max_num_files )
+		entries_per_file = ceil( self.__metadata[table]['num_entries'] ) / self.__max_num_files
+
 		i_ent = 0
 		i_file = 0
 		temp = []
+
 		for entry in data:
 			if i_ent < entries_per_file:
 				i_ent += 1
 				temp.append(entry)
 			else:
-				with open("{}_{:06d}.dat".format(table, i_file), 'w') as dat_file:
+				with open(os.path.join(self.__dat_dir, "{}_{:06d}_sorted.dat".format(table, i_file)), 'w') as dat_file:
 					self.__dump_json(temp, dat_file)
 				temp = []
 				i_ent = 0
@@ -87,10 +215,10 @@ class stage2:
 
 		for (table,) in self.__tables:
 			cur1 = self.__db.cursor()
-			cur1.execute("SELECT COUNT(*) FROM " + table)
+			cur1.execute("SELECT COUNT(id) FROM " + table)
 			num_entries = cur1.fetchone()[0]
 
-			entries_per_file = ceil( float(num_entries) / self.__max_num_files )
+			entries_per_file = ceil( num_entries / self.__max_num_files )
 
 			fields = self.__get_table_columns(table)
 
@@ -112,19 +240,23 @@ class stage2:
 			dat_file = open(os.path.join(self.__dat_dir, "{}_{:06d}.dat".format(table, 0)), 'w')
 
 			temp = []
+			count = 0
 
 			for vals in cur2.fetchall():
 
-				if i_ent == entries_per_file:
+				temp.append(vals)
+				i_ent += 1
 
+				if i_ent == entries_per_file:
 					with open(os.path.join(self.__dat_dir, "{}_{:06d}.dat".format(table, i_file)), 'w')\
 					as dat_file:
 						try:
+							count += len(temp)
 							self.__dump_json(temp, dat_file)
 						except TypeError:
 							traceback.print_exc()
 							print("For: {}".format(vals))
-							pass
+							quit()
 						except:
 							traceback.print_exc()
 							quit()
@@ -132,9 +264,9 @@ class stage2:
 					i_ent = 0
 					i_file += 1
 
-				else:
-					temp.append(vals)
-					i_ent += 1
+			print("Number of entries stored: {}".format(count))
+			print()
+
 
 		self.__db.close()
 		pkl.dump(self.__metadata, open(os.path.join(self.__dat_dir, 'metadata.pkl'), 'wb'))
