@@ -32,8 +32,8 @@ public class TimeDriver{
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        pw.write("time_node_1,01:57:00,time_node_2");
-
+        pw.write("time_node_1,15:00:00,time_node_2");
+        pw.close();
 
     }
 
@@ -153,6 +153,7 @@ public class TimeDriver{
 
         for(int i = 90; i < beans.size(); i = i + 90){
             if(currentEntries == fan - 1){
+                i = i + 90;
                 pw.write("time_node_" + curPointerIndex++);
                 pw.close();
                 try {
@@ -171,6 +172,7 @@ public class TimeDriver{
             pw.write(beans.get(i).getValue() + ",");
             currentEntries++;
         }
+        pw.write("time_leaf_" + curPointerIndex++);
         pw.close();
     }
 

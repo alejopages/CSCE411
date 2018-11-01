@@ -32,7 +32,8 @@ numLeaves = ceil(numItems/valuesPerFile)
 
 Generate all the leaves at once. The leftmost leaf will have an empty far-left pointer. The rightmost leaf will have an empty far-right pointer. Each value in the file will have *all* the values from the table (it's already stored in the objects). The first value in the values list should be the value we're sorting by (stateId for Person). Use ';' for delimiter.
 
-numLvl1Nodes = ceil(numLeaves/numKeys)
-Afterward, take numLeaves and divide that by the number of pointers a node may have
+numLvl1Nodes = ceil(numLeaves/maxKeys) [play with it to get numbers working]
 
+numLvl2Nodes = ceil(numLvl1Nodes/numKeys)
 
+...
