@@ -25,11 +25,12 @@ def main():
     lvl0Results = entryResults[0]
     leaves = buildLeaves(persons, FAN, \
              lvl0Results["entriesPerFile"], PERSON_LEAF_LEADER)
-    print(len(leaves))
+    # print(len(leaves))
 
     lvl1Results = entryResults[1]
     lvl1Nodes = buildLvl1Nodes(leaves, lvl1Results, \
                                PERSON_LEAF_LEADER, PERSON_NODE_LEADER)
+    # print(len(lvl1Nodes))
     # print(json.dumps(lvl1Nodes, indent=4))
     # for node in lvl1Nodes:
         # print(node)
@@ -41,41 +42,102 @@ def main():
     # CAn just do entryREsults["starintgthingy"] + i when iterating
     # over them
 
-    # lvl2Results = entryResults[2]
     # lvl2Nodes = buildLvl2Nodes(lvl1Nodes, lvl2Results, PERSON_NODE_LEADER)
     # for node in lvl2Nodes:
         # print(node)
 
+    lvl2Results = entryResults[2]
+    lvl2Nodes = buildHigherNodes(lvl1Nodes, lvl1Results["startingFileNumber"], entryResults[2], PERSON_NODE_LEADER)
+    # for node in lvl2Nodes:
+        # print(node)
+
+    lvl3Results = entryResults[3]
+    lvl3Nodes = buildHigherNodes(lvl2Nodes, lvl2Results["startingFileNumber"], entryResults[3], PERSON_NODE_LEADER)
+
+    # TODO: Seems to basically be working - but I know there's definitely
+    # some issues where indices are off by a certain amount. Really need
+    # to go through it all with a fine-tooth comb and see what's going on.
+    # Might help if I just write it all to files so I have something more
+    # tangible to observe
+
+
+    # rootNode = buildRootNode(lvl2Nodes, lvl3Results, lvl2Results["startingFileNumber"], PERSON_NODE_LEADER)
+# def buildHigherNode(lowerNodes, lvlEntryResults, STARTING_NODE_NUMBER, PREVIOUS_STARTING_NODE_NUMBER, LEADER):
+
+    # lvl3Nodes = buildHigherNodes(lvl2Nodes, lvl2Results["startingFileNumber"], entryResults[3], PERSON_NODE_LEADER)
+
+    # print("OLD NODES")
+    # print(lvl1Nodes[0])
+    # print(lvl1Nodes[10])
+    # print(leaves[100])
+
     return
 
-def buildLvl2Nodes(lvl1Nodes, lvlEntryResults, NODE_LEADER):
-    # nodes = dict()
+# def buildRootNode(lowerNodes, lvlEntryResults, PREVIOUS_STARTING_NODE_NUMBER, LEADER):
+    # STARTING_NODE_NUMBER = lvlEntryResults["startingFileNumber"]
+    # node = dict()
+    # ENTRIES_PER_FILE = lvlEntryResults["entriesPerFile"]
+    # node["values"] = LEADER + str(PREVIOUS_STARTING_NODE_NUMBER) + ","
+    # # node["leftmostTreeValue"] = lowerNodes[STARTING_NODE_NUMBER-PREVIOUS_STARTING_NODE_NUMBER]["leftmostTreeValue"]
+#
+    # start = (STARTING_NODE_NUMBER+1)
+    # end = (STARTING_NODE_NUMBER + ENTRIES_PER_FILE)
+    # print(start)
+    # print(end)
+    # for i in range(start, end):
+        # # if i-PREVIOUS_STARTING_NODE_NUMBER >= len(lowerNodes):
+            # # break
+        # lowerNode = lowerNodes[i-PREVIOUS_STARTING_NODE_NUMBER]
+        # # smallestleaf["values"].split(",")[1].split(";")[0]
+        # addition = lowerNode["leftmostTreeValue"] \
+                 # + "," + LEADER + str(i) + ","
+        # node["values"] = node["values"] + addition
+#
+    # node["values"] = node["values"][0 : len(node["values"]) - 1]
+#
+    # return node
+
+def buildHigherNodes(previousLevelNodes, previousLvlStartingFileNumber, \
+                   lvlEntryResults, NODE_LEADER):
+# def buildHigherNodes(previousLevelNodes, lvlEntryResults, \
+                     # previousLvlStartingFileNumber, NODE_LEADER):
     nodes = list()
-    count = 0
-    for i in range(0, len(lvl1Nodes), 10):
-        # nodeNumber = count + lvl1EntryResults["startingFileNumber"]
-        # nodeFilename = NODE_LEADER + str(nodeNumber)
-        # nodes[nodeFilename] = buildNode(leaves, \
-                              # lvl1EntryResults["entriesPerFile"], \
-                              # i, LEAF_LEADER)
-
-        node = buildHigherNode(lvl1Nodes, lvlEntryResults["entriesPerFile"], \
-                         i, NODE_LEADER)
-
-        nodes.append(node)
-        count += 1
+    entriesPerFile = lvlEntryResults["entriesPerFile"]
+    end = lvlEntryResults["numFiles"]
+    for i in range(end):
+        print(i)
+        higherNode = buildHigherNode(previousLevelNodes, lvlEntryResults, \
+                previousLvlStartingFileNumber + (i*entriesPerFile), \
+                previousLvlStartingFileNumber, NODE_LEADER)
+        print(higherNode)
+        nodes.append(higherNode)
 
     return nodes
 
-def buildHigherNode(leaves, , STARTING_LEAF_NUMBER, LEADER):
+def buildHigherNode(lowerNodes, lvlEntryResults, STARTING_NODE_NUMBER, PREVIOUS_STARTING_NODE_NUMBER, LEADER):
+    print("StartingNodeNumber: " + str(STARTING_NODE_NUMBER))
+    print("PrevStartNodeNum: " + str(PREVIOUS_STARTING_NODE_NUMBER))
     node = dict()
-    node["values"] = LEADER + str(STARTING_LEAF_NUMBER) + ","
-    node["leftmostTreeValue"] = leaves[STARTING_LEAF_NUMBER]["lowestValue"]
-    for i in range(STARTING_LEAF_NUMBER+1, \
-                   STARTING_LEAF_NUMBER + LEAVES_PER_NODE):
-        leaf = leaves[i]
+    ENTRIES_PER_FILE = lvlEntryResults["entriesPerFile"]
+    node["values"] = LEADER + str(STARTING_NODE_NUMBER) + ","
+
+    if lvlEntryResults["numFiles"] != 1:
+        node["leftmostTreeValue"] = lowerNodes[STARTING_NODE_NUMBER-PREVIOUS_STARTING_NODE_NUMBER]["leftmostTreeValue"]
+
+    start = (STARTING_NODE_NUMBER)+1
+    end = (STARTING_NODE_NUMBER + ENTRIES_PER_FILE)
+    print(start)
+    print(end)
+    for i in range(start, end):
+        numLowerNodes = len(lowerNodes)
+        # print("NumLowerNodes: " + str(numLowerNodes))
+        # if i >= numLowerNodes:
+        if i-PREVIOUS_STARTING_NODE_NUMBER >= numLowerNodes:
+            print("exiting")
+            break
+        lowerNode = lowerNodes[i-PREVIOUS_STARTING_NODE_NUMBER]
         # smallestleaf["values"].split(",")[1].split(";")[0]
-        addition = leaf["lowestValue"] \
+        addition = lowerNode["leftmostTreeValue"] \
                  + "," + LEADER + str(i) + ","
         node["values"] = node["values"] + addition
 
@@ -115,7 +177,8 @@ def buildLvl1Nodes(leaves, lvl1EntryResults, LEAF_LEADER, NODE_LEADER):
     # nodes = dict()
     nodes = list()
     count = 0
-    for i in range(0, len(leaves), 10):
+    entriesPerFile = lvl1EntryResults["entriesPerFile"]
+    for i in range(0, len(leaves), entriesPerFile):
         # nodeNumber = count + lvl1EntryResults["startingFileNumber"]
         # nodeFilename = NODE_LEADER + str(nodeNumber)
         # nodes[nodeFilename] = buildNode(leaves, \
