@@ -1,0 +1,9 @@
+STAGE 2
+    step b)
+        Which columns will be selected for sorting?
+            The column selected for sorting when sorting the Message ids are
+            the message id columns
+        Why:
+            Every column can be sorted, but needs to match only the message ids.
+            So sorting everything around message ids is all that is needed.
+    
