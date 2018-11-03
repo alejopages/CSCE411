@@ -2,6 +2,7 @@ from sys import argv, exit
 import dataLoader
 from math import ceil
 import json
+from timeit import default_timer as timer
 
 if len(argv) != 2:
     exit("ERROR: Invalid # of arguments provided")
@@ -19,12 +20,18 @@ NODE_LEADER = "messages_node_"
 LEAF_LEADER = "messages_leaf_"
 
 def main():
+
+    start = timer()
+
     # IMPORT DATA
     # ======================================
     print("LOADING DATA" \
         + "\n======================================")
     data = dataLoader.importMessages()
     processData(data)
+
+    end = timer()
+    print("Processing Time: " + str(end - start))
     return
 
 def processData(data):
