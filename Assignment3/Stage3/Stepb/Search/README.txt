@@ -1,0 +1,1 @@
+If you want to run this needs to be in a directory with all the message,person,state,etc folders
