@@ -1,0 +1,18 @@
+USE apages;
+
+DROP TABLE Tweets;
+DROP TABLE Date;
+
+CREATE TABLE Date (
+	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	date DATE NOT NULL
+);
+
+CREATE TABLE Tweets (
+	id INT PRIMARY KEY NOT NULL,
+    date INT NOT NULL,
+    time TIME NOT NULL,
+    text VARCHAR(280) NOT NULL,
+    FOREIGN KEY (date) REFERENCES Date(id)
+);
+
