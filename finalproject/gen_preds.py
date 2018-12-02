@@ -8,8 +8,22 @@ from collections import OrderedDict
 import copy
 from prettytable import PrettyTable as pt
 import os
+import time
+import sys
+from optparse import OptionParser
+
 
 def main():
+
+    op = OptionParser(usage="%prog")
+    op.add_option("-r", "--refresh", action="store_true", dest="refresh", default=False, help="Rerun model and predictions")
+
+    (opt, args) = op.parse_args()
+
+    if opt.refresh:
+        os.remove("model_predictions.pkl")
+        os.remove("features.npy")
+        os.remove("labels.npy")
 
     features, labels = get_features_labels()
 
@@ -204,8 +218,9 @@ def connect_db():
     return con
 
 if __name__ == '__main__':
-    import sys
-    if len(sys.argv) > 0:
-        if sys.argv[1] == '--refresh':
-            os.system("rm *.pny; rm *.pkl")
+
+    start = time.time()
     main()
+    end = time.time()
+
+    print("Time: {}".format(end - start))
