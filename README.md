@@ -7,7 +7,7 @@ Stage 2:
 
       conda install -c anaconda mysql-connector-python
       or
-      pip instal mysql-connector-python
+      pip install mysql-connector-python
 
   * step a:
       Define:
